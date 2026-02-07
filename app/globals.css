@@ -1,0 +1,150 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Professional Dark Wood Theme - Luxury Design */
+:root {
+  /* Dark Wood Base Colors */
+  --wood-dark: #1a1410;
+  --wood-medium: #2d2420;
+  --wood-light: #3d322a;
+  --wood-surface: #4a3d33;
+  
+  /* Cream/Gold Accent Colors */
+  --cream: #f5f0e8;
+  --cream-light: #faf8f5;
+  --gold: #c9a962;
+  --gold-light: #dbc78a;
+  --gold-dark: #a68b45;
+  
+  /* Semantic Colors */
+  --warm-bg: var(--wood-dark);
+  --warm-surface: var(--wood-medium);
+  --warm-light: var(--wood-light);
+  --charcoal: var(--cream);
+  --charcoal-medium: #d4cfc5;
+  --charcoal-light: #a09a90;
+  --champagne: var(--gold);
+  --champagne-light: var(--gold-light);
+
+  /* System Colors */
+  --background: var(--wood-dark);
+  --foreground: var(--cream);
+  --card: var(--wood-medium);
+  --card-foreground: var(--cream);
+  --popover: var(--wood-medium);
+  --popover-foreground: var(--cream);
+  --primary: var(--gold);
+  --primary-foreground: var(--wood-dark);
+  --secondary: var(--wood-light);
+  --secondary-foreground: var(--cream);
+  --muted: var(--wood-light);
+  --muted-foreground: var(--charcoal-light);
+  --accent: var(--gold);
+  --accent-foreground: var(--wood-dark);
+  --destructive: #dc4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(201, 169, 98, 0.2);
+  --input: var(--wood-light);
+  --ring: var(--gold);
+  
+  /* Chart Colors */
+  --chart-1: var(--gold);
+  --chart-2: var(--cream);
+  --chart-3: #8b7355;
+  --chart-4: #a0522d;
+  --chart-5: #6b4423;
+  --radius: 0.625rem;
+  
+  /* Sidebar - Dark Wood */
+  --sidebar: var(--wood-dark);
+  --sidebar-foreground: var(--cream);
+  --sidebar-primary: var(--gold);
+  --sidebar-primary-foreground: var(--wood-dark);
+  --sidebar-accent: var(--wood-light);
+  --sidebar-accent-foreground: var(--cream);
+  --sidebar-border: rgba(201, 169, 98, 0.15);
+  --sidebar-ring: var(--gold);
+  
+  /* CPR Semaphore Colors */
+  --cpr-green: #22c55e;
+  --cpr-green-bg: rgba(34, 197, 94, 0.15);
+  --cpr-yellow: #eab308;
+  --cpr-yellow-bg: rgba(234, 179, 8, 0.15);
+  --cpr-red: #ef4444;
+  --cpr-red-bg: rgba(239, 68, 68, 0.15);
+}
+
+@theme inline {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --color-wood-dark: var(--wood-dark);
+  --color-wood-medium: var(--wood-medium);
+  --color-wood-light: var(--wood-light);
+  --color-wood-surface: var(--wood-surface);
+  --color-cream: var(--cream);
+  --color-cream-light: var(--cream-light);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-warm-bg: var(--warm-bg);
+  --color-warm-surface: var(--warm-surface);
+  --color-warm-light: var(--warm-light);
+  --color-charcoal: var(--charcoal);
+  --color-charcoal-medium: var(--charcoal-medium);
+  --color-charcoal-light: var(--charcoal-light);
+  --color-champagne: var(--champagne);
+  --color-champagne-light: var(--champagne-light);
+  --color-cpr-green: var(--cpr-green);
+  --color-cpr-green-bg: var(--cpr-green-bg);
+  --color-cpr-yellow: var(--cpr-yellow);
+  --color-cpr-yellow-bg: var(--cpr-yellow-bg);
+  --color-cpr-red: var(--cpr-red);
+  --color-cpr-red-bg: var(--cpr-red-bg);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
