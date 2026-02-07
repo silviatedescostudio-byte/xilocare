@@ -54,7 +54,7 @@ const VALID_USERS: Record<string, { password: string; role: UserRole; displayNam
 }
 
 // Pagine pubbliche (non richiedono login)
-const PUBLIC_PATHS = ["/login", "/view"]
+const PUBLIC_PATHS = ["/login", "/view", "/c", "/customer", "/manutenzione", "/sos", "/sos-protocols"]
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)

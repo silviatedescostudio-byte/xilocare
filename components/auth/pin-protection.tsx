@@ -1,9 +1,13 @@
 "use client"
 
 import { useState, useEffect, useCallback, type ReactNode } from "react"
+import { usePathname } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Shield, Lock, Delete, X } from "lucide-react"
+
+// Routes that bypass PIN protection entirely (public customer access)
+const PUBLIC_ROUTES = ["/c", "/customer", "/manutenzione", "/sos", "/api/public/", "/api/customer/", "/api/shelly"]
 
 /**
  * GLOBAL PIN PROTECTION WRAPPER
@@ -22,11 +26,15 @@ interface PinProtectionProps {
 }
 
 export function PinProtection({ children }: PinProtectionProps) {
+  const pathname = usePathname()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
   const [pinInput, setPinInput] = useState("")
   const [pinError, setPinError] = useState(false)
   const [shake, setShake] = useState(false)
+
+  // Check if current route is public (bypass PIN)
+  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
 
   // Check stored authentication on mount
   useEffect(() => {
@@ -85,6 +93,11 @@ export function PinProtection({ children }: PinProtectionProps) {
         <div className="w-10 h-10 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
       </div>
     )
+  }
+
+  // Public routes bypass PIN entirely
+  if (isPublicRoute) {
+    return <>{children}</>
   }
 
   // If authenticated, render children (the actual app content)
