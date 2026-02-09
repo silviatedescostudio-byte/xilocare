@@ -4,18 +4,40 @@ import { useParams } from "next/navigation"
 import { Shield, AlertTriangle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
+import { createClient } from "@supabase/supabase-js"
 
-// Valid public codes mapped to customer data
-const VALID_CODES: Record<string, { name: string; deviceId: string }> = {
-  bianchi: { name: "Residenza Bianchi", deviceId: "e4b3232f9708" },
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export default function PublicCustomerPage() {
   const params = useParams()
   const code = (params.public_code as string)?.toLowerCase()
-  const customer = VALID_CODES[code]
 
-  // Invalid code - show error page (no redirect to login)
+  const [customer, setCustomer] = React.useState<any>(null)
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    const loadCustomer = async () => {
+      if (!code) return
+
+      const { data } = await supabase
+        .from("clienti")
+        .select("nome, shelly_id")
+        .eq("public_code", code)
+        .single()
+
+      setCustomer(data)
+      setLoading(false)
+    }
+
+    loadCustomer()
+  }, [code])
+
+  if (loading) return null
+
+  // Invalid code
   if (!customer) {
     return (
       <div className="min-h-screen bg-wood-dark flex items-center justify-center px-6">
@@ -26,10 +48,7 @@ export default function PublicCustomerPage() {
             </div>
             <h1 className="text-xl font-bold text-cream">Codice non valido</h1>
             <p className="text-cream/60 text-sm">
-              Il codice <span className="font-mono text-gold">"{params.public_code}"</span> non corrisponde a nessun cliente registrato.
-            </p>
-            <p className="text-cream/40 text-xs">
-              Verifica il link ricevuto dal tuo rivenditore.
+              Il codice <span className="font-mono text-gold">"{code}"</span> non corrisponde a nessun cliente registrato.
             </p>
           </CardContent>
         </Card>
@@ -37,7 +56,7 @@ export default function PublicCustomerPage() {
     )
   }
 
-  // Valid code - redirect to customer dashboard with context
+  // Valid code
   return (
     <div className="min-h-screen bg-wood-dark flex flex-col items-center justify-center px-6">
       <Card className="max-w-sm w-full bg-wood-medium border-gold/20">
@@ -47,28 +66,18 @@ export default function PublicCustomerPage() {
               <Shield className="h-7 w-7 text-wood-dark" strokeWidth={2.5} />
             </div>
           </div>
+
           <div>
             <h1 className="text-xl font-bold text-cream">WoodFloor Safe & Care</h1>
-            <p className="text-gold text-sm font-semibold mt-1">{customer.name}</p>
+            <p className="text-gold text-sm font-semibold mt-1">{customer.nome}</p>
           </div>
+
           <div className="space-y-3">
             <Link
               href="/customer"
-              className="block w-full py-3 px-4 rounded-xl bg-gold text-wood-dark font-bold text-center hover:bg-gold/90 transition-colors"
+              className="block w-full py-3 px-4 rounded-xl bg-gold text-wood-dark font-bold text-center"
             >
               Accedi alla Dashboard
-            </Link>
-            <Link
-              href="/manutenzione"
-              className="block w-full py-3 px-4 rounded-xl bg-wood-dark/50 border border-gold/30 text-cream font-medium text-center hover:bg-wood-dark/70 transition-colors"
-            >
-              Uso e Manutenzione
-            </Link>
-            <Link
-              href="/sos"
-              className="block w-full py-3 px-4 rounded-xl bg-cpr-red/10 border border-cpr-red/30 text-cpr-red font-medium text-center hover:bg-cpr-red/20 transition-colors"
-            >
-              SOS - Pronto Soccorso
             </Link>
           </div>
         </CardContent>
