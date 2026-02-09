@@ -4,18 +4,53 @@ import { useParams } from "next/navigation"
 import { Shield, AlertTriangle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { createClient } from "@supabase/supabase-js"
 
-// Valid public codes mapped to customer data
-const VALID_CODES: Record<string, { name: string; deviceId: string }> = {
-  bianchi: { name: "Residenza Bianchi", deviceId: "e4b3232f9708" },
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export default function PublicCustomerPage() {
   const params = useParams()
-  const code = (params.public_code as string)?.toLowerCase()
-  const customer = VALID_CODES[code]
+  const code = (params.public_code as string | undefined)?.toLowerCase()
 
-  // Invalid code - show error page (no redirect to login)
+  const [customer, setCustomer] = useState<{ nome: string } | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const { data, error } = await supabase
+          .from("clienti")
+          .select("nome")
+          .eq("public_code", code ?? "")
+          .maybeSingle()
+
+        if (error || !data) setCustomer(null)
+        else setCustomer({ nome: data.nome })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (code) load()
+    else setLoading(false)
+  }, [code])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-wood-dark flex items-center justify-center px-6">
+        <Card className="max-w-sm w-full bg-wood-medium border-gold/20">
+          <CardContent className="p-8 text-center space-y-4">
+            <p className="text-cream/70 text-sm">Caricamento...</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (!customer) {
     return (
       <div className="min-h-screen bg-wood-dark flex items-center justify-center px-6">
@@ -26,18 +61,15 @@ export default function PublicCustomerPage() {
             </div>
             <h1 className="text-xl font-bold text-cream">Codice non valido</h1>
             <p className="text-cream/60 text-sm">
-              Il codice <span className="font-mono text-gold">"{params.public_code}"</span> non corrisponde a nessun cliente registrato.
+              Il codice <span className="font-mono text-gold">"{params.public_code as string}"</span> non corrisponde a nessun cliente registrato.
             </p>
-            <p className="text-cream/40 text-xs">
-              Verifica il link ricevuto dal tuo rivenditore.
-            </p>
+            <p className="text-cream/40 text-xs">Verifica il link ricevuto dal tuo rivenditore.</p>
           </CardContent>
         </Card>
       </div>
     )
   }
 
-  // Valid code - redirect to customer dashboard with context
   return (
     <div className="min-h-screen bg-wood-dark flex flex-col items-center justify-center px-6">
       <Card className="max-w-sm w-full bg-wood-medium border-gold/20">
@@ -49,7 +81,7 @@ export default function PublicCustomerPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-cream">WoodFloor Safe & Care</h1>
-            <p className="text-gold text-sm font-semibold mt-1">{customer.name}</p>
+            <p className="text-gold text-sm font-semibold mt-1">{customer.nome}</p>
           </div>
           <div className="space-y-3">
             <Link
