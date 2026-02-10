@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getClientByPin } from '@/lib/supabase';
@@ -14,50 +15,66 @@ export default function PinPage({ params }: { params: { public_code: string } })
     setLoading(true);
     setError('');
 
-    // Chiamata al database usando l'helper che abbiamo creato
-    const clientData = await getClientByPin(pin);
+    try {
+      // Interroghiamo il database usando il PIN inserito
+      const clientData = await getClientByPin(pin);
 
-    if (clientData) {
-      // Se il PIN è corretto, lo mandiamo alla pagina del suo codice
-      router.push(`/c/${params.public_code}`);
-    } else {
-      setError('PIN non valido. Riprova.');
+      if (clientData) {
+        // Se il PIN è corretto, entriamo nella pagina del cliente
+        router.push(`/c/${params.public_code}`);
+      } else {
+        setError('PIN non valido. Riprova.');
+      }
+    } catch (err) {
+      setError('Errore di connessione al database.');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-stone-50 p-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-sm border border-stone-200">
-        <h1 className="text-2xl font-serif text-stone-800 mb-6 text-center">
-          Accesso Riservato Safe&Care
-        </h1>
-        <p className="text-stone-600 text-center mb-8 text-sm">
-          Inserisci il PIN ricevuto dal tuo rivenditore per accedere ai dettagli del tuo pavimento.
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-stone-50 p-4 font-sans">
+      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-stone-200">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-serif text-stone-900 mb-2">Safe & Care</h1>
+          <p className="text-stone-500 text-sm italic">Proteggiamo la bellezza del tuo legno</p>
+        </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <h2 className="text-xl font-medium text-stone-800 mb-6 text-center">
+          Inserisci il tuo PIN
+        </h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
           <input
             type="text"
+            inputMode="numeric"
             value={pin}
             onChange={(e) => setPin(e.target.value)}
-            placeholder="Inserisci PIN"
-            className="w-full p-3 border border-stone-300 rounded-lg text-center text-xl tracking-widest focus:ring-2 focus:ring-stone-400 outline-none"
+            placeholder="······"
+            className="w-full p-4 border-2 border-stone-200 rounded-xl text-center text-3xl tracking-[0.5em] focus:border-stone-500 focus:ring-0 outline-none transition-all text-black"
             maxLength={10}
             required
           />
           
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          {error && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center font-medium">
+              {error}
+            </div>
+          )}
           
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-stone-800 text-white p-3 rounded-lg font-medium hover:bg-stone-700 transition-colors disabled:bg-stone-400"
+            className="w-full bg-stone-900 text-white p-4 rounded-xl font-bold text-lg hover:bg-stone-800 active:scale-[0.98] transition-all disabled:bg-stone-400 shadow-lg"
           >
-            {loading ? 'Verifica in corso...' : 'Entra'}
+            {loading ? 'Verifica in corso...' : 'Sblocca Accesso'}
           </button>
         </form>
+        
+        <p className="mt-8 text-center text-stone-400 text-xs">
+          Richiedi il codice al tuo installatore autorizzato
+        </p>
       </div>
     </div>
   );
