@@ -1,110 +1,69 @@
-"use client"
+'use client';
 
-import { useParams } from "next/navigation"
-import { Shield, AlertTriangle } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import Link from "next/link"
-import { useEffect, useState } from "react"
-import { createClient } from "@supabase/supabase-js"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getClientByPin } from '@/lib/supabase';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+export default function PinPage({ params }: { params: { public_code: string } }) {
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-export default function PublicCustomerPage() {
-  const params = useParams()
-  const code = (params.public_code as string | undefined)?.toLowerCase()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  const [customer, setCustomer] = useState<{ nome: string } | null>(null)
-  const [loading, setLoading] = useState(true)
+    try {
+      const clientData = await getClientByPin(pin);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const { data, error } = await supabase
-          .from("clienti")
-          .select("nome")
-          .eq("public_code", code ?? "")
-          .maybeSingle()
-
-        if (error || !data) setCustomer(null)
-        else setCustomer({ nome: data.nome })
-      } finally {
-        setLoading(false)
+      if (clientData) {
+        // Se il PIN è corretto, lo mandiamo alla pagina del cliente
+        // Usiamo params.public_code per assicurarci di restare nel percorso giusto
+        router.push(`/c/${params.public_code}`);
+      } else {
+        setError('PIN non valido. Riprova.');
       }
+    } catch (err) {
+      setError('Errore di connessione. Riprova più tardi.');
+    } finally {
+      setLoading(false);
     }
-
-    if (code) load()
-    else setLoading(false)
-  }, [code])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-wood-dark flex items-center justify-center px-6">
-        <Card className="max-w-sm w-full bg-wood-medium border-gold/20">
-          <CardContent className="p-8 text-center space-y-4">
-            <p className="text-cream/70 text-sm">Caricamento...</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  if (!customer) {
-    return (
-      <div className="min-h-screen bg-wood-dark flex items-center justify-center px-6">
-        <Card className="max-w-sm w-full bg-wood-medium border-gold/20">
-          <CardContent className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-cpr-red/10 flex items-center justify-center mx-auto border border-cpr-red/20">
-              <AlertTriangle className="h-8 w-8 text-cpr-red" />
-            </div>
-            <h1 className="text-xl font-bold text-cream">Codice non valido</h1>
-            <p className="text-cream/60 text-sm">
-              Il codice <span className="font-mono text-gold">"{params.public_code as string}"</span> non corrisponde a nessun cliente registrato.
-            </p>
-            <p className="text-cream/40 text-xs">Verifica il link ricevuto dal tuo rivenditore.</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-wood-dark flex flex-col items-center justify-center px-6">
-      <Card className="max-w-sm w-full bg-wood-medium border-gold/20">
-        <CardContent className="p-8 text-center space-y-6">
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gold to-gold/70 flex items-center justify-center shadow-lg shadow-gold/20">
-              <Shield className="h-7 w-7 text-wood-dark" strokeWidth={2.5} />
-            </div>
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-cream">WoodFloor Safe & Care</h1>
-            <p className="text-gold text-sm font-semibold mt-1">{customer.nome}</p>
-          </div>
-          <div className="space-y-3">
-            <Link
-              href="/customer"
-              className="block w-full py-3 px-4 rounded-xl bg-gold text-wood-dark font-bold text-center hover:bg-gold/90 transition-colors"
-            >
-              Accedi alla Dashboard
-            </Link>
-            <Link
-              href="/manutenzione"
-              className="block w-full py-3 px-4 rounded-xl bg-wood-dark/50 border border-gold/30 text-cream font-medium text-center hover:bg-wood-dark/70 transition-colors"
-            >
-              Uso e Manutenzione
-            </Link>
-            <Link
-              href="/sos"
-              className="block w-full py-3 px-4 rounded-xl bg-cpr-red/10 border border-cpr-red/30 text-cpr-red font-medium text-center hover:bg-cpr-red/20 transition-colors"
-            >
-              SOS - Pronto Soccorso
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex items-center justify-center bg-stone-50 p-4">
+      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+        <h1 className="text-2xl font-serif text-stone-800 mb-6 text-center">
+          Accesso Riservato Safe&Care
+        </h1>
+        <p className="text-stone-600 text-center mb-8 text-sm">
+          Inserisci il PIN per accedere ai dettagli del tuo pavimento.
+        </p>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
+            placeholder="Inserisci PIN"
+            className="w-full p-3 border border-stone-300 rounded-lg text-center text-xl tracking-widest focus:ring-2 focus:ring-stone-400 outline-none"
+            maxLength={10}
+            required
+          />
+          
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-stone-800 text-white p-3 rounded-lg font-medium hover:bg-stone-700 transition-colors disabled:bg-stone-400"
+          >
+            {loading ? 'Verifica in corso...' : 'Entra'}
+          </button>
+        </form>
+      </div>
     </div>
-  )
+  );
 }
