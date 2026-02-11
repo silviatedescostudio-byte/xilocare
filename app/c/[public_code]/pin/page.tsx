@@ -16,17 +16,23 @@ export default function PinPage({ params }: { params: { public_code: string } })
     setError('');
 
     try {
-      // Cerchiamo il cliente che abbia SIA il public_code giusto SIA il PIN giusto
+      // Puliamo il pin da eventuali spazi
+      const cleanedPin = pin.trim();
+
+      // Cerchiamo il cliente nella tabella 'clients'
       const { data, error: sbError } = await supabase
         .from('clients')
         .select('*')
         .eq('public_code', params.public_code)
-        .eq('pin', pin)
+        .eq('pin', cleanedPin)
         .single();
 
       if (data) {
-        // Se lo troviamo, andiamo alla pagina del cliente
-        router.push(`/c/${params.public_code}`);
+        // Salviamo la sessione nel browser per la dashboard
+        localStorage.setItem('customerSession', JSON.stringify(data));
+        
+        // ✅ CORREZIONE: Puntiamo alla cartella 'customer' che abbiamo visto su GitHub
+        router.push(`/c/${params.public_code}/customer`);
       } else {
         setError('PIN non valido per questo utente.');
       }
