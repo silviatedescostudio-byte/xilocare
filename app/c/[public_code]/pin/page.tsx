@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getClientByPin } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export default function PinPage({ params }: { params: { public_code: string } }) {
   const [pin, setPin] = useState('');
@@ -16,14 +16,19 @@ export default function PinPage({ params }: { params: { public_code: string } })
     setError('');
 
     try {
-      // Interroghiamo il database usando il PIN inserito
-      const clientData = await getClientByPin(pin);
+      // Cerchiamo il cliente che abbia SIA il public_code giusto SIA il PIN giusto
+      const { data, error: sbError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('public_code', params.public_code)
+        .eq('pin', pin)
+        .single();
 
-      if (clientData) {
-        // Se il PIN è corretto, entriamo nella pagina del cliente
+      if (data) {
+        // Se lo troviamo, andiamo alla pagina del cliente
         router.push(`/c/${params.public_code}`);
       } else {
-        setError('PIN non valido. Riprova.');
+        setError('PIN non valido per questo utente.');
       }
     } catch (err) {
       setError('Errore di connessione al database.');
@@ -34,7 +39,7 @@ export default function PinPage({ params }: { params: { public_code: string } })
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-stone-50 p-4 font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-stone-50 p-4 font-sans text-black">
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-stone-200">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-serif text-stone-900 mb-2">Safe & Care</h1>
@@ -42,7 +47,7 @@ export default function PinPage({ params }: { params: { public_code: string } })
         </div>
         
         <h2 className="text-xl font-medium text-stone-800 mb-6 text-center">
-          Inserisci il tuo PIN
+          Accesso per: <span className="font-bold text-stone-900">{params.public_code}</span>
         </h2>
         
         <form onSubmit={handleSubmit} className="space-y-6">
