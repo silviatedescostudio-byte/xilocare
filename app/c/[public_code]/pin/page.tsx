@@ -44,7 +44,7 @@ export default function PinPage({ params }: { params: { public_code: string } })
       localStorage.setItem('customerSession', JSON.stringify(data));
 
       // Manteniamo la tua struttura attuale
-      router.push(`/c/${publicCode}/customer`);
+      router.push(`/customer/${publicCode}`);
     } catch (err: any) {
       console.error('UNEXPECTED ERROR ->', err);
       setError('Errore di connessione o errore inatteso.');
