@@ -15,30 +15,39 @@ export default function PinPage({ params }: { params: { public_code: string } })
     setLoading(true);
     setError('');
 
-    try {
-      // Puliamo il pin da eventuali spazi
-      const cleanedPin = pin.trim();
+    const cleanedPin = String(pin).trim();
+    const publicCode = String(params.public_code || '').trim();
 
-      // Cerchiamo il cliente nella tabella 'clients'
+    try {
+      // DEBUG: ci serve per capire cosa sta succedendo davvero in produzione
+      console.log('LOGIN DEBUG -> public_code:', publicCode, 'pin:', cleanedPin);
+
       const { data, error: sbError } = await supabase
         .from('clients')
         .select('*')
-        .eq('public_code', params.public_code)
+        .eq('public_code', publicCode)
         .eq('pin', cleanedPin)
         .single();
 
-      if (data) {
-        // Salviamo la sessione nel browser per la dashboard
-        localStorage.setItem('customerSession', JSON.stringify(data));
-        
-        // ✅ CORREZIONE: Puntiamo alla cartella 'customer' che abbiamo visto su GitHub
-        router.push(`/c/${params.public_code}/customer`);
-      } else {
-        setError('PIN non valido per questo utente.');
+      // ✅ Se c'è errore, MOSTRALO (non trasformarlo in "PIN non valido")
+      if (sbError) {
+        console.error('SUPABASE ERROR ->', sbError);
+        setError(`Errore DB: ${sbError.message}`);
+        return;
       }
-    } catch (err) {
-      setError('Errore di connessione al database.');
-      console.error(err);
+
+      if (!data) {
+        setError('PIN non valido per questo utente.');
+        return;
+      }
+
+      localStorage.setItem('customerSession', JSON.stringify(data));
+
+      // Manteniamo la tua struttura attuale
+      router.push(`/c/${publicCode}/customer`);
+    } catch (err: any) {
+      console.error('UNEXPECTED ERROR ->', err);
+      setError('Errore di connessione o errore inatteso.');
     } finally {
       setLoading(false);
     }
@@ -51,11 +60,11 @@ export default function PinPage({ params }: { params: { public_code: string } })
           <h1 className="text-3xl font-serif text-stone-900 mb-2">Safe & Care</h1>
           <p className="text-stone-500 text-sm italic">Proteggiamo la bellezza del tuo legno</p>
         </div>
-        
+
         <h2 className="text-xl font-medium text-stone-800 mb-6 text-center">
           Accesso per: <span className="font-bold text-stone-900">{params.public_code}</span>
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <input
             type="text"
@@ -67,13 +76,13 @@ export default function PinPage({ params }: { params: { public_code: string } })
             maxLength={10}
             required
           />
-          
+
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center font-medium">
               {error}
             </div>
           )}
-          
+
           <button
             type="submit"
             disabled={loading}
@@ -82,7 +91,7 @@ export default function PinPage({ params }: { params: { public_code: string } })
             {loading ? 'Verifica in corso...' : 'Sblocca Accesso'}
           </button>
         </form>
-        
+
         <p className="mt-8 text-center text-stone-400 text-xs">
           Richiedi il codice al tuo installatore autorizzato
         </p>
