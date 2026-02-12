@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 
 export default function PinPage({ params }: { params: { public_code: string } }) {
   const [pin, setPin] = useState('');
@@ -15,39 +14,37 @@ export default function PinPage({ params }: { params: { public_code: string } })
     setLoading(true);
     setError('');
 
-    const cleanedPin = String(pin).trim();
     const publicCode = String(params.public_code || '').trim();
 
     try {
-      // DEBUG: ci serve per capire cosa sta succedendo davvero in produzione
-      console.log('LOGIN DEBUG -> public_code:', publicCode, 'pin:', cleanedPin);
+      // 🚀 CHIAMATA AL PONTE SICURO (API)
+      const res = await fetch('/api/customer/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          pin: pin.trim(),
+          publicCode: publicCode 
+        }),
+      });
 
-      const { data, error: sbError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('public_code', publicCode)
-        .eq('pin', cleanedPin)
-        .single();
+      const result = await res.json();
 
-      // ✅ Se c'è errore, MOSTRALO (non trasformarlo in "PIN non valido")
-      if (sbError) {
-        console.error('SUPABASE ERROR ->', sbError);
-        setError(`Errore DB: ${sbError.message}`);
+      if (!res.ok) {
+        // Se l'API ci dà errore, lo mostriamo
+        setError(result.error || 'PIN non valido');
         return;
       }
 
-      if (!data) {
-        setError('PIN non valido per questo utente.');
-        return;
-      }
+      // ✅ SE OK: Il server ha già impostato il Cookie. 
+      // Salviamo comunque qualcosa nel localStorage per compatibilità se serve alla dashboard
+      localStorage.setItem('customerSession', JSON.stringify({ public_code: publicCode }));
 
-      localStorage.setItem('customerSession', JSON.stringify(data));
-
-      // Manteniamo la tua struttura attuale
+      // Andiamo alla pagina del cliente
       router.push(`/customer/${publicCode}`);
+      
     } catch (err: any) {
-      console.error('UNEXPECTED ERROR ->', err);
-      setError('Errore di connessione o errore inatteso.');
+      console.error('ERRORE INVIO ->', err);
+      setError('Errore di connessione. Riprova.');
     } finally {
       setLoading(false);
     }
