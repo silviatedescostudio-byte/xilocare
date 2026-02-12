@@ -53,8 +53,21 @@ const VALID_USERS: Record<string, { password: string; role: UserRole; displayNam
   }
 }
 
-// Pagine pubbliche (non richiedono login)
-const PUBLIC_PATHS = ["/login", "/view", "/c", "/customer", "/manutenzione", "/sos", "/sos-protocols"]
+// ✅ SOLO queste aree devono richiedere login dealer/admin
+const DEALER_PROTECTED_PREFIXES = ["/dealer", "/dashboard", "/admin"]
+
+// ✅ queste sono route customer/pubbliche: NON devono mai finire nel login dealer
+const CUSTOMER_PREFIXES = [
+  "/c",
+  "/customer",
+  "/manutenzione",
+  "/sos",
+  "/sos-protocols",
+  "/api/customer",
+  "/api/public",
+  "/api/shelly",
+]
+
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -76,12 +89,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    // Redirect to login if not authenticated and not on public page
-    const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path))
-    if (!isLoading && !user && !isPublicPath) {
-      router.push("/login")
-    }
-  }, [user, isLoading, pathname, router])
+  if (isLoading) return
+
+  // customer/pubblico: mai redirect a /login
+  const isCustomerArea = CUSTOMER_PREFIXES.some((p) => pathname.startsWith(p))
+  if (isCustomerArea) return
+
+  // dealer: qui sì che serve login
+  const isDealerArea = DEALER_PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
+  if (isDealerArea && !user) {
+    router.push("/login")
+  }
+}, [user, isLoading, pathname, router])
+
 
   const login = async (username: string, password: string): Promise<boolean> => {
     // Simulate API call delay
